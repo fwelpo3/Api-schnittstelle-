@@ -1,0 +1,5 @@
+{
+  "name": "Serverless API Guide",
+  "description": "An interactive guide to creating and testing simple serverless API endpoints, inspired by Vercel's serverless functions.",
+  "requestFramePermissions": []
+}
