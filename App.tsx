@@ -34,6 +34,21 @@ export default function handler(req, res) {
 }
 `;
 
+const productsCodeSnippet = `
+// Ein weiterer Endpunkt, der eine Liste von Daten zurückgibt.
+// /api/products.js
+
+export default function handler(req, res) {
+  const products = [
+    { id: 'p1', name: 'Quantum Laptop', price: 2499.99 },
+    { id: 'p2', name: 'Neural-Interface Headset', price: 799.00 },
+    { id: 'p3', name: 'Holographic Display', price: 1800.50 },
+  ];
+
+  res.status(200).json(products);
+}
+`;
+
 const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 font-sans p-4 sm:p-6 lg:p-8">
@@ -62,9 +77,9 @@ const App: React.FC = () => {
               </div>
               <ApiTestCard 
                 title="GET-Endpunkt testen"
-                description="Nach dem Deploy ist deine Funktion erreichbar unter: https://dein-projekt.vercel.app/api/hello. Gib deine URL ein, um eine GET-Anfrage zu senden."
+                description="Dieser Endpunkt ist bereits simuliert. Klicke auf 'Anfrage senden', um ihn zu testen. Du kannst auch eine andere, externe URL eingeben."
                 method="GET"
-                defaultUrl=""
+                defaultUrl="/api/hello"
                 defaultBody=""
               />
             </div>
@@ -82,11 +97,30 @@ const App: React.FC = () => {
               </div>
               <ApiTestCard 
                 title="POST-Endpunkt testen"
-                description="Teste eine POST-Anfrage, indem du deine URL und einen JSON-Body angibst. Die API sollte deine gesendeten Daten zurückgeben."
+                description="Teste eine POST-Anfrage an den simulierten Endpunkt /api/submit oder eine eigene URL. Die API sollte deine gesendeten Daten zurückgeben."
                 method="POST"
-                defaultUrl=""
+                defaultUrl="/api/submit"
                 defaultBody={JSON.stringify({ user: "Alex", value: 42 }, null, 2)}
                 showBody={true}
+              />
+            </div>
+          </section>
+
+          {/* Products List Section */}
+          <section id="list-request">
+            <h2 className="text-3xl font-bold mb-6 border-l-4 border-purple-400 pl-4">3. Beispiel: Eine Daten-Liste abrufen</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              <div className="space-y-4">
+                <p className="text-gray-300">
+                  APIs werden oft verwendet, um Sammlungen oder Listen von Daten bereitzustellen, z. B. eine Liste von Produkten. Der Code dafür ist sehr einfach: Du erstellst ein Array von Objekten und gibst es als JSON zurück.
+                </p>
+                <CodeBlock code={productsCodeSnippet} language="javascript" />
+              </div>
+              <ApiTestCard 
+                title="Produktliste testen"
+                description="Rufe eine Liste von Produkten vom simulierten Endpunkt /api/products ab."
+                method="GET"
+                defaultUrl="/api/products"
               />
             </div>
           </section>

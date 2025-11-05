@@ -10,6 +10,39 @@ interface ApiTestCardProps {
   showBody?: boolean;
 }
 
+const mockApiEndpoints: Record<string, any> = {
+  '/api/hello': {
+    GET: () => ({
+      status: 200,
+      body: { message: 'Hallo von der simulierten Vercel API!' },
+    }),
+  },
+  '/api/submit': {
+    POST: (requestBody: string) => {
+      try {
+        const data = JSON.parse(requestBody);
+        return {
+          status: 200,
+          body: { message: 'Daten erfolgreich empfangen!', receivedData: data },
+        };
+      } catch (e) {
+        return { status: 400, body: { error: 'Invalid JSON in request body' } };
+      }
+    },
+  },
+  '/api/products': {
+      GET: () => ({
+          status: 200,
+          body: [
+              { id: 'p1', name: 'Quantum Laptop', price: 2499.99 },
+              { id: 'p2', name: 'Neural-Interface Headset', price: 799.00 },
+              { id: 'p3', name: 'Holographic Display', price: 1800.50 },
+          ]
+      })
+  }
+};
+
+
 const LoadingSpinner: React.FC = () => (
   <div className="flex justify-center items-center p-4">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
@@ -60,6 +93,31 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
     setResponse(null);
     setStatus(null);
 
+    // Mock API simulation for local paths
+    if (url.startsWith('/api/')) {
+      const endpoint = mockApiEndpoints[url];
+      if (endpoint && endpoint[method]) {
+        setTimeout(() => {
+          const res = endpoint[method](body);
+          setStatus(res.status);
+          if (res.status >= 200 && res.status < 400) {
+            setResponse(JSON.stringify(res.body, null, 2));
+          } else {
+            setError(`Fehler: ${JSON.stringify(res.body, null, 2)}`);
+          }
+          setIsLoading(false);
+        }, 800); // Simulate network delay
+      } else {
+        setTimeout(() => {
+          setStatus(404);
+          setError(`Simulierter API Endpunkt nicht gefunden: ${method} ${url}`);
+          setIsLoading(false);
+        }, 500);
+      }
+      return;
+    }
+
+    // Real fetch for external URLs
     try {
       const options: RequestInit = {
         method,
@@ -105,7 +163,7 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://dein-projekt.vercel.app/api/..."
+            placeholder="z.B. /api/hello oder eine externe URL"
             className="w-full bg-transparent p-2 text-gray-200 outline-none"
           />
         </div>
@@ -126,7 +184,7 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
 
         <button
           onClick={handleSubmit}
-          disabled={isLoading || (method === 'POST' && !isBodyValid)}
+          disabled={isLoading || !url || (method === 'POST' && !isBodyValid)}
           className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
         >
           {isLoading ? 'Senden...' : 'Anfrage senden'}
