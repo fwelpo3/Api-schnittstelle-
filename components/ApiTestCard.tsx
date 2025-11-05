@@ -39,7 +39,31 @@ const mockApiEndpoints: Record<string, any> = {
               { id: 'p3', name: 'Holographic Display', price: 1800.50 },
           ]
       })
-  }
+  },
+  '/api/scrape': {
+    GET: (productUrl: string | null) => {
+      if (productUrl === 'https://amzn.eu/d/8vSt5rK') {
+        return {
+          status: 200,
+          body: {
+            name: 'U-Taste mechanische Gaming-Tastatur, 60% kabelgebunden',
+            description: 'Kompakte 62 Tasten-Tastatur mit RGB-Regenbogen-Hintergrundbeleuchtung, Anti-Ghosting, für Windows, PC, Mac, Gamer (Weiß-Schwarz)',
+            imageUrl: 'https://m.media-amazon.com/images/I/71-cf1y8eFL._AC_SL1500_.jpg',
+            price: '39,99 €',
+            source: productUrl,
+          },
+        };
+      } else {
+        return {
+          status: 400,
+          body: { 
+            error: 'URL nicht unterstützt.',
+            message: 'In dieser Demo wird nur die Scraping-Simulation für die Beispiel-URL unterstützt.' 
+          }
+        };
+      }
+    }
+  },
 };
 
 
@@ -48,6 +72,16 @@ const LoadingSpinner: React.FC = () => (
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
   </div>
 );
+
+const ScrapedProductCard: React.FC<{ data: any }> = ({ data }) => (
+    <div className="font-sans not-italic text-white bg-gray-800 rounded-lg p-4 mb-4 border border-gray-600 shadow-md">
+      <img src={data.imageUrl} alt={data.name} className="w-full h-48 object-contain rounded-md mb-4 bg-white" />
+      <h5 className="font-bold text-lg mb-2">{data.name}</h5>
+      <p className="text-sm text-gray-300 mb-2">{data.description}</p>
+      {data.price && <p className="text-lg font-semibold text-teal-300">{data.price}</p>}
+    </div>
+);
+
 
 export const ApiTestCard: React.FC<ApiTestCardProps> = ({
   title,
@@ -95,15 +129,37 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
 
     // Mock API simulation for local paths
     if (url.startsWith('/api/')) {
-      const endpoint = mockApiEndpoints[url];
+      const urlPath = url.split('?')[0];
+      const endpoint = mockApiEndpoints[urlPath];
+
+      // Special handler for scraper
+      if (urlPath === '/api/scrape') {
+        setTimeout(() => {
+          const params = new URLSearchParams(url.split('?')[1] || '');
+          const productUrl = params.get('url');
+          const res = mockApiEndpoints['/api/scrape'].GET(productUrl);
+          
+          setStatus(res.status);
+          const responseBody = JSON.stringify(res.body, null, 2);
+          if (res.status >= 200 && res.status < 400) {
+            setResponse(responseBody);
+          } else {
+            setError(responseBody);
+          }
+          setIsLoading(false);
+        }, 800);
+        return;
+      }
+
       if (endpoint && endpoint[method]) {
         setTimeout(() => {
           const res = endpoint[method](body);
           setStatus(res.status);
+          const responseBody = JSON.stringify(res.body, null, 2);
           if (res.status >= 200 && res.status < 400) {
-            setResponse(JSON.stringify(res.body, null, 2));
+            setResponse(responseBody);
           } else {
-            setError(`Fehler: ${JSON.stringify(res.body, null, 2)}`);
+            setError(responseBody);
           }
           setIsLoading(false);
         }, 800); // Simulate network delay
@@ -149,6 +205,29 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
     if (status >= 400 && status < 500) return 'bg-yellow-500';
     if (status >= 500) return 'bg-red-500';
     return 'bg-gray-500';
+  };
+
+  const renderResponse = () => {
+    if (isLoading) return <LoadingSpinner />;
+    if (error) return <pre className="text-red-400 whitespace-pre-wrap">{error}</pre>;
+    if (response) {
+      try {
+        const data = JSON.parse(response);
+        // Check if it's our scraped product data
+        if (data.name && data.imageUrl && data.description) {
+          return (
+            <>
+              <ScrapedProductCard data={data} />
+              <hr className="border-gray-700 my-4" />
+              <h6 className="font-sans not-italic text-xs text-gray-400 mb-2">ROHDATEN (JSON):</h6>
+              <pre className="text-green-300 whitespace-pre-wrap">{response}</pre>
+            </>
+          );
+        }
+      } catch (e) { /* Fallback to plain text */ }
+      return <pre className="text-green-300 whitespace-pre-wrap">{response}</pre>;
+    }
+    return <span className="text-gray-500 font-sans not-italic">Die Antwort der API wird hier angezeigt.</span>;
   };
 
   return (
@@ -197,10 +276,7 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
           {status && <span className={`px-2 py-0.5 rounded-full text-xs font-bold text-white ${getStatusColor()}`}>{status}</span>}
         </h4>
         <div className="w-full bg-gray-900 rounded-md border border-gray-700 min-h-[120px] text-sm p-4 font-mono overflow-auto">
-          {isLoading && <LoadingSpinner />}
-          {error && <pre className="text-red-400 whitespace-pre-wrap">{error}</pre>}
-          {response && <pre className="text-green-300 whitespace-pre-wrap">{response}</pre>}
-          {!isLoading && !error && !response && <span className="text-gray-500">Die Antwort der API wird hier angezeigt.</span>}
+          {renderResponse()}
         </div>
       </div>
     </div>
