@@ -4,18 +4,18 @@ import { CodeBlock } from './components/CodeBlock';
 import { ApiTestCard } from './components/ApiTestCard';
 
 const getCodeSnippet = `
-// In deinem Projekt (z. B. Next.js), erstelle die Datei:
+// In deinem Projekt, erstelle die Datei:
 // /api/hello.js
 
 export default function handler(req, res) {
   res.status(200).json({ 
-    message: 'Hallo von der Vercel API!' 
+    message: 'Hallo von deiner Live-API!' 
   });
 }
 `;
 
 const postCodeSnippet = `
-// Erweitere deine API, um POST-Requests zu verarbeiten:
+// Erstelle diese Datei für POST-Requests:
 // /api/submit.js
 
 export default function handler(req, res) {
@@ -27,7 +27,7 @@ export default function handler(req, res) {
       receivedData: data 
     });
   } else {
-    // Handle andere Methoden
+    // Handle andere Methoden (z.B. GET)
     res.setHeader('Allow', ['POST']);
     res.status(405).end(\`Method \${req.method} Not Allowed\`);
   }
@@ -35,7 +35,7 @@ export default function handler(req, res) {
 `;
 
 const productsCodeSnippet = `
-// Ein weiterer Endpunkt, der eine Liste von Daten zurückgibt.
+// Ein Endpunkt, der eine Liste von Daten zurückgibt.
 // /api/products.js
 
 export default function handler(req, res) {
@@ -59,9 +59,14 @@ const App: React.FC = () => {
             Serverless API Guide
           </h1>
           <p className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">
-            Eine interaktive Anleitung zum Erstellen und Testen von einfachen API-Endpunkten mit Serverless Functions.
+            Eine interaktive Anleitung zum Erstellen und Testen von API-Endpunkten mit Serverless Functions.
           </p>
         </header>
+
+        <div className="bg-yellow-900/30 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-lg relative mb-12" role="alert">
+          <strong className="font-bold">Wichtiger Hinweis: </strong>
+          <span className="block sm:inline">Diese Seite ist ein interaktiver Guide. Die API-Endpunkte sind hier zunächst <strong>simuliert</strong>, damit du sie direkt im Browser testen kannst. Damit deine API (z.B. `.../api/hello`) nach dem Deployment auf Vercel live funktioniert, <strong>musst du die gezeigten Dateien manuell in einem `/api`-Ordner in deinem Projekt anlegen.</strong></span>
+        </div>
 
         <main className="space-y-16">
           
@@ -71,13 +76,13 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               <div className="space-y-4">
                 <p className="text-gray-300">
-                  Um einen einfachen API-Endpunkt zu erstellen, der Daten zurückgibt (ein GET-Request), legst du in deinem Projekt eine Datei an, wie hier gezeigt. Vercel oder ähnliche Plattformen machen diese Datei automatisch als API-Endpunkt verfügbar.
+                  Um einen echten API-Endpunkt auf Vercel zu erstellen, der auf GET-Anfragen reagiert, musst du eine Datei im `/api`-Verzeichnis deines Projekts anlegen. Vercel erkennt diese automatisch als Serverless Function.
                 </p>
                 <CodeBlock code={getCodeSnippet} language="javascript" />
               </div>
               <ApiTestCard 
                 title="GET-Endpunkt testen"
-                description="Dieser Endpunkt ist bereits simuliert. Klicke auf 'Anfrage senden', um ihn zu testen. Du kannst auch eine andere, externe URL eingeben."
+                description="Dieser Endpunkt ist simuliert. Klicke auf 'Anfrage senden', um ihn zu testen. Sobald du die Datei /api/hello.js angelegt und deployed hast, funktioniert auch deine echte URL."
                 method="GET"
                 defaultUrl="/api/hello"
                 defaultBody=""
@@ -91,13 +96,13 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               <div className="space-y-4">
                 <p className="text-gray-300">
-                  Deine API kann auch Daten empfangen, z. B. von einem Formular. Dafür verwendest du POST-Requests. Der folgende Code zeigt, wie man auf die gesendeten JSON-Daten zugreift und sie zurückgibt.
+                  Auch für POST-Requests legst du eine entsprechende Datei an. Der Code prüft die Anfrage-Methode (`req.method`) und kann so auf die gesendeten Daten im `req.body` zugreifen.
                 </p>
                 <CodeBlock code={postCodeSnippet} language="javascript" />
               </div>
               <ApiTestCard 
                 title="POST-Endpunkt testen"
-                description="Teste eine POST-Anfrage an den simulierten Endpunkt /api/submit oder eine eigene URL. Die API sollte deine gesendeten Daten zurückgeben."
+                description="Teste eine POST-Anfrage. Die Simulation gibt deine gesendeten Daten zurück. Erstelle /api/submit.js, damit es live funktioniert."
                 method="POST"
                 defaultUrl="/api/submit"
                 defaultBody={JSON.stringify({ user: "Alex", value: 42 }, null, 2)}
@@ -112,7 +117,7 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               <div className="space-y-4">
                 <p className="text-gray-300">
-                  APIs werden oft verwendet, um Sammlungen oder Listen von Daten bereitzustellen, z. B. eine Liste von Produkten. Der Code dafür ist sehr einfach: Du erstellst ein Array von Objekten und gibst es als JSON zurück.
+                  Hier ein weiteres Beispiel. Dieser Code in `/api/products.js` würde eine statische Liste von Produkten als JSON zurückgeben. Perfekt für einen einfachen Katalog.
                 </p>
                 <CodeBlock code={productsCodeSnippet} language="javascript" />
               </div>
