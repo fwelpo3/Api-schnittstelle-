@@ -10,63 +10,6 @@ interface ApiTestCardProps {
   showBody?: boolean;
 }
 
-const mockApiEndpoints: Record<string, any> = {
-  '/api/hello': {
-    GET: () => ({
-      status: 200,
-      body: { message: 'Hallo von der simulierten Vercel API!' },
-    }),
-  },
-  '/api/submit': {
-    POST: (requestBody: string) => {
-      try {
-        const data = JSON.parse(requestBody);
-        return {
-          status: 200,
-          body: { message: 'Daten erfolgreich empfangen!', receivedData: data },
-        };
-      } catch (e) {
-        return { status: 400, body: { error: 'Invalid JSON in request body' } };
-      }
-    },
-  },
-  '/api/products': {
-      GET: () => ({
-          status: 200,
-          body: [
-              { id: 'p1', name: 'Quantum Laptop', price: 2499.99 },
-              { id: 'p2', name: 'Neural-Interface Headset', price: 799.00 },
-              { id: 'p3', name: 'Holographic Display', price: 1800.50 },
-          ]
-      })
-  },
-  '/api/scrape': {
-    GET: (productUrl: string | null) => {
-      if (productUrl === 'https://amzn.eu/d/8vSt5rK') {
-        return {
-          status: 200,
-          body: {
-            name: 'U-Taste mechanische Gaming-Tastatur, 60% kabelgebunden',
-            description: 'Kompakte 62 Tasten-Tastatur mit RGB-Regenbogen-Hintergrundbeleuchtung, Anti-Ghosting, für Windows, PC, Mac, Gamer (Weiß-Schwarz)',
-            imageUrl: 'https://m.media-amazon.com/images/I/71-cf1y8eFL._AC_SL1500_.jpg',
-            price: '39,99 €',
-            source: productUrl,
-          },
-        };
-      } else {
-        return {
-          status: 400,
-          body: { 
-            error: 'URL nicht unterstützt.',
-            message: 'In dieser Demo wird nur die Scraping-Simulation für die Beispiel-URL unterstützt.' 
-          }
-        };
-      }
-    }
-  },
-};
-
-
 const LoadingSpinner: React.FC = () => (
   <div className="flex justify-center items-center p-4">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
@@ -75,9 +18,9 @@ const LoadingSpinner: React.FC = () => (
 
 const ScrapedProductCard: React.FC<{ data: any }> = ({ data }) => (
     <div className="font-sans not-italic text-white bg-gray-800 rounded-lg p-4 mb-4 border border-gray-600 shadow-md">
-      <img src={data.imageUrl} alt={data.name} className="w-full h-48 object-contain rounded-md mb-4 bg-white" />
-      <h5 className="font-bold text-lg mb-2">{data.name}</h5>
-      <p className="text-sm text-gray-300 mb-2">{data.description}</p>
+      {data.imageUrl && <img src={data.imageUrl} alt={data.name || 'Produktbild'} className="w-full h-48 object-contain rounded-md mb-4 bg-white" />}
+      {data.name && <h5 className="font-bold text-lg mb-2">{data.name}</h5>}
+      {data.description && <p className="text-sm text-gray-300 mb-2">{data.description}</p>}
       {data.price && <p className="text-lg font-semibold text-teal-300">{data.price}</p>}
     </div>
 );
@@ -127,60 +70,13 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
     setResponse(null);
     setStatus(null);
 
-    // Mock API simulation for local paths
-    if (url.startsWith('/api/')) {
-      const urlPath = url.split('?')[0];
-      const endpoint = mockApiEndpoints[urlPath];
-
-      // Special handler for scraper
-      if (urlPath === '/api/scrape') {
-        setTimeout(() => {
-          const params = new URLSearchParams(url.split('?')[1] || '');
-          const productUrl = params.get('url');
-          const res = mockApiEndpoints['/api/scrape'].GET(productUrl);
-          
-          setStatus(res.status);
-          const responseBody = JSON.stringify(res.body, null, 2);
-          if (res.status >= 200 && res.status < 400) {
-            setResponse(responseBody);
-          } else {
-            setError(responseBody);
-          }
-          setIsLoading(false);
-        }, 800);
-        return;
-      }
-
-      if (endpoint && endpoint[method]) {
-        setTimeout(() => {
-          const res = endpoint[method](body);
-          setStatus(res.status);
-          const responseBody = JSON.stringify(res.body, null, 2);
-          if (res.status >= 200 && res.status < 400) {
-            setResponse(responseBody);
-          } else {
-            setError(responseBody);
-          }
-          setIsLoading(false);
-        }, 800); // Simulate network delay
-      } else {
-        setTimeout(() => {
-          setStatus(404);
-          setError(`Simulierter API Endpunkt nicht gefunden: ${method} ${url}`);
-          setIsLoading(false);
-        }, 500);
-      }
-      return;
-    }
-
-    // Real fetch for external URLs
     try {
       const options: RequestInit = {
         method,
         headers: {},
       };
 
-      if (method === 'POST') {
+      if (method === 'POST' && body) {
         options.headers = { 'Content-Type': 'application/json' };
         options.body = body;
       }
@@ -188,8 +84,19 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
       const res = await fetch(url, options);
       setStatus(res.status);
 
-      const responseData = await res.json();
-      setResponse(JSON.stringify(responseData, null, 2));
+      const responseText = await res.text();
+      
+      if (!res.ok) {
+          throw new Error(`HTTP-Fehler ${res.status}: ${responseText}`);
+      }
+      
+      // Versuche, als JSON zu parsen, aber falle auf Text zurück, wenn es fehlschlägt
+      try {
+          const responseData = JSON.parse(responseText);
+          setResponse(JSON.stringify(responseData, null, 2));
+      } catch(e) {
+          setResponse(responseText);
+      }
 
     } catch (err: any) {
       setError(err.message || 'Ein unbekannter Fehler ist aufgetreten.');
@@ -213,8 +120,8 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
     if (response) {
       try {
         const data = JSON.parse(response);
-        // Check if it's our scraped product data
-        if (data.name && data.imageUrl && data.description) {
+        // Prüfe, ob es sich um unsere Scraper-Produktdaten handelt
+        if (data.name || data.imageUrl) {
           return (
             <>
               <ScrapedProductCard data={data} />
@@ -224,7 +131,7 @@ export const ApiTestCard: React.FC<ApiTestCardProps> = ({
             </>
           );
         }
-      } catch (e) { /* Fallback to plain text */ }
+      } catch (e) { /* Fallback auf reinen Text, wenn JSON-Parsing fehlschlägt */ }
       return <pre className="text-green-300 whitespace-pre-wrap">{response}</pre>;
     }
     return <span className="text-gray-500 font-sans not-italic">Die Antwort der API wird hier angezeigt.</span>;
