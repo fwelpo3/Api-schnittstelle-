@@ -4,7 +4,7 @@ import { CodeBlock } from './components/CodeBlock';
 import { ApiTestCard } from './components/ApiTestCard';
 
 const getCodeSnippet = `
-// In deinem Projekt, erstelle die Datei:
+// Diese Datei existiert bereits im Projekt:
 // /api/hello.js
 
 export default function handler(req, res) {
@@ -15,7 +15,7 @@ export default function handler(req, res) {
 `;
 
 const postCodeSnippet = `
-// Erstelle diese Datei für POST-Requests:
+// Diese Datei existiert bereits im Projekt:
 // /api/submit.js
 
 export default function handler(req, res) {
@@ -35,7 +35,7 @@ export default function handler(req, res) {
 `;
 
 const productsCodeSnippet = `
-// Ein Endpunkt, der eine Liste von Daten zurückgibt.
+// Diese Datei existiert bereits im Projekt:
 // /api/products.js
 
 export default function handler(req, res) {
@@ -63,9 +63,9 @@ const App: React.FC = () => {
           </p>
         </header>
 
-        <div className="bg-yellow-900/30 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-lg relative mb-12" role="alert">
-          <strong className="font-bold">Wichtiger Hinweis: </strong>
-          <span className="block sm:inline">Diese Seite ist ein interaktiver Guide. Die API-Endpunkte sind hier zunächst <strong>simuliert</strong>, damit du sie direkt im Browser testen kannst. Damit deine API (z.B. `.../api/hello`) nach dem Deployment auf Vercel live funktioniert, <strong>musst du die gezeigten Dateien manuell in einem `/api`-Ordner in deinem Projekt anlegen.</strong></span>
+        <div className="bg-green-900/30 border border-green-700 text-green-200 px-4 py-3 rounded-lg relative mb-12" role="alert">
+          <strong className="font-bold">Gute Nachrichten! </strong>
+          <span className="block sm:inline">Die benötigten API-Dateien (z.B. `/api/hello.js`) sind jetzt **Teil dieses Projekts**. Wenn du dieses Projekt auf Vercel deployest, werden sie **automatisch zu funktionierenden Live-API-Endpunkten**.</span>
         </div>
 
         <main className="space-y-16">
@@ -76,13 +76,13 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               <div className="space-y-4">
                 <p className="text-gray-300">
-                  Um einen echten API-Endpunkt auf Vercel zu erstellen, der auf GET-Anfragen reagiert, musst du eine Datei im `/api`-Verzeichnis deines Projekts anlegen. Vercel erkennt diese automatisch als Serverless Function.
+                  Die Datei `/api/hello.js` in diesem Projekt ist eine Serverless Function. Eine Plattform wie Vercel erkennt automatisch alle Dateien im `/api`-Verzeichnis und macht sie unter der entsprechenden URL erreichbar.
                 </p>
                 <CodeBlock code={getCodeSnippet} language="javascript" />
               </div>
               <ApiTestCard 
                 title="GET-Endpunkt testen"
-                description="Dieser Endpunkt ist simuliert. Klicke auf 'Anfrage senden', um ihn zu testen. Sobald du die Datei /api/hello.js angelegt und deployed hast, funktioniert auch deine echte URL."
+                description="Dieser Endpunkt wird hier für schnelle Tests simuliert. Sobald du das Projekt deployed hast, kannst du deine echte Live-URL (z.B. 'https://dein-projekt.vercel.app/api/hello') in das URL-Feld einfügen und testen."
                 method="GET"
                 defaultUrl="/api/hello"
                 defaultBody=""
@@ -96,13 +96,13 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               <div className="space-y-4">
                 <p className="text-gray-300">
-                  Auch für POST-Requests legst du eine entsprechende Datei an. Der Code prüft die Anfrage-Methode (`req.method`) und kann so auf die gesendeten Daten im `req.body` zugreifen.
+                  Genauso funktioniert es mit POST-Requests. Der Code in `/api/submit.js` prüft die Anfrage-Methode (`req.method`) und kann so auf die gesendeten Daten im `req.body` zugreifen.
                 </p>
                 <CodeBlock code={postCodeSnippet} language="javascript" />
               </div>
               <ApiTestCard 
                 title="POST-Endpunkt testen"
-                description="Teste eine POST-Anfrage. Die Simulation gibt deine gesendeten Daten zurück. Erstelle /api/submit.js, damit es live funktioniert."
+                description="Teste eine POST-Anfrage. Die Simulation gibt deine gesendeten Daten zurück. Auf Vercel deployed, verarbeitet `/api/submit.js` die echten Daten."
                 method="POST"
                 defaultUrl="/api/submit"
                 defaultBody={JSON.stringify({ user: "Alex", value: 42 }, null, 2)}
@@ -117,13 +117,13 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               <div className="space-y-4">
                 <p className="text-gray-300">
-                  Hier ein weiteres Beispiel. Dieser Code in `/api/products.js` würde eine statische Liste von Produkten als JSON zurückgeben. Perfekt für einen einfachen Katalog.
+                  Hier ein weiteres Beispiel. Der Code in `/api/products.js` gibt eine statische Liste von Produkten als JSON zurück. Perfekt für einen einfachen Katalog.
                 </p>
                 <CodeBlock code={productsCodeSnippet} language="javascript" />
               </div>
               <ApiTestCard 
                 title="Produktliste testen"
-                description="Rufe eine Liste von Produkten vom simulierten Endpunkt /api/products ab."
+                description="Rufe eine Liste von Produkten vom Endpunkt `/api/products` ab. Auch diese Datei ist bereit für dein Deployment."
                 method="GET"
                 defaultUrl="/api/products"
               />
